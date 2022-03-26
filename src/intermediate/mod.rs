@@ -5,6 +5,7 @@
 pub type BrainFuck = Vec<Stat>;
 
 /// Basic Integer operations
+#[derive(Debug, Clone)]
 pub enum Op {
     Add,
     Mul,
@@ -13,6 +14,7 @@ pub enum Op {
 }
 
 /// Basic Statement types
+#[derive(Debug, Clone)]
 pub enum Stat {
     PtrMove(i32),
     DerefOp(Op, i32),
