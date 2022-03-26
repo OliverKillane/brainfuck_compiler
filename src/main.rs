@@ -13,6 +13,30 @@
 //!    patterns to be matched and replaced with assembly inserts (optimisation)
 //! 3. Convert the intermediate representation to the target language (e.g
 //!    x86 assembly), or if the target is the interpreter - interpret.
+//! 
+//! ## Command Line Interface:
+//! ```text
+//! brainfuck_compiler 0.0.1
+//! Oliver Killane
+//! A brainfuck compiler targeting multiple architectures
+//! 
+//! USAGE:
+//!     bf [OPTIONS] <FILE>
+//! 
+//! ARGS:
+//!     <FILE>
+//! 
+//! 
+//! OPTIONS:
+//!     -h, --help
+//!             Print help information
+//! 
+//!     -o, --outputpath <FILE>
+//!             The name of the output file
+//! 
+//!     -V, --version
+//!             Print version information
+//! ```
 
 mod arch;
 mod intermediate;
