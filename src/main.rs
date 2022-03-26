@@ -38,6 +38,8 @@
 //!             Print version information
 //! ```
 
+#![allow(dead_code)]
+
 mod arch;
 mod intermediate;
 mod parser;
