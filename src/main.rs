@@ -37,6 +37,15 @@
 //!     -V, --version
 //!             Print version information
 //! ```
+//!
+//! ## Exit Codes:
+//! | Exit Code | Meaning                |
+//! |-----------|------------------------|
+//! | 0         | Successful Compilation |
+//! | 1         | File Read Failure      |
+//! | 2         | File Write Failure     |
+//! | 3         | File Create Failure    |
+//! | 100       | Syntax Error           |
 
 #![allow(dead_code)]
 
@@ -52,6 +61,7 @@ use std::{
 };
 
 use clap::Parser;
+use parser::parse;
 #[derive(Parser)]
 #[clap(author = "Oliver Killane", about = "BrainFuck compiler" , long_about = Some("A brainfuck compiler targeting multiple architectures"), version = "0.0.1")]
 struct Args {
@@ -72,7 +82,7 @@ const EXIT_SUCCESS: i32 = 0;
 const FILE_READ_FAILURE: i32 = 1;
 const FILE_WRITE_FAILURE: i32 = 2;
 const FILE_CREATE_FAILURE: i32 = 3;
-const SYNTAX_ERROR: i32 = 4;
+const SYNTAX_ERROR: i32 = 100;
 
 fn main() {
     let Args {
@@ -81,30 +91,37 @@ fn main() {
     } = Args::parse();
 
     match read_to_string(inputpath.clone()) {
-        Ok(_source) => {
-            // todo parsing
+        Ok(source) => {
+            match parse(&source) {
+                Ok(ir) => {
+                    println!("{:?}", ir);
+                    // todo optimisation
 
-            // todo optimisation
+                    // todo generation
 
-            // todo generation
+                    let mut outputfile = if let Ok(file) = match outputpath {
+                        Some(path) => File::create(path),
+                        None => {
+                            inputpath.set_extension("s");
+                            File::create(inputpath)
+                        }
+                    } {
+                        file
+                    } else {
+                        exit(FILE_CREATE_FAILURE)
+                    };
 
-            let mut outputfile = if let Ok(file) = match outputpath {
-                Some(path) => File::create(path),
-                None => {
-                    inputpath.set_extension(".s");
-                    File::create(inputpath)
+                    if outputfile.write("this is the code".as_bytes()).is_err() {
+                        exit(FILE_WRITE_FAILURE);
+                    }
+
+                    exit(EXIT_SUCCESS)
                 }
-            } {
-                file
-            } else {
-                exit(FILE_CREATE_FAILURE)
-            };
-
-            if outputfile.write("this is the code".as_bytes()).is_err() {
-                exit(FILE_WRITE_FAILURE);
+                Err(_err) => {
+                    println!("An error occured");
+                    exit(SYNTAX_ERROR)
+                }
             }
-
-            exit(EXIT_SUCCESS)
         }
         Err(_) => {
             println!("Unable to open file");

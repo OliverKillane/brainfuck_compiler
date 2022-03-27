@@ -1,4 +1,8 @@
 /target
-/doc
 
-bf
+# ignore the brainfuck
+bfc
+
+# Brainfuck and assembly files ignored
+*.bf
+*.s
