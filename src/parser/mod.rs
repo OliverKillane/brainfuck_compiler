@@ -54,12 +54,13 @@ pub fn parse(input: &str) -> Result<BrainFuck, &str> {
     }
 }
 
-/// Parse an assembly insert, retaining the text inside the insert
+/// Parse an assembly insert, placing the text inside into an assembly insert
+/// statement.
 fn get_insert(input: &str) -> IResult<&str, Stat> {
     take_until("::")(input).map(|(rem, asm)| (rem, Stat::Asm(asm.to_string())))
 }
 
-/// Gte the inner
+/// Get the inner instructions of a basic while loop
 fn get_while(input: &str) -> IResult<&str, Stat> {
     parse_stats(input).map(|(rem, res)| (rem, Stat::WhileNonZero(res)))
 }
@@ -72,6 +73,7 @@ fn get_whitespace(input: &str) -> IResult<&str, Vec<()>> {
     )))(input)
 }
 
+/// Parse statements into a vector of statements
 fn parse_stats(input: &str) -> IResult<&str, Stats> {
     many0(delimited(
         get_whitespace,
