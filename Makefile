@@ -1,20 +1,18 @@
 # Makefile used by labTS for using cargo.
 
-RUSTFLAGS="-C link-args=-Wl,-zstack-size=104857600"
-
 all: debug
 debug:
-	cargo build && mv target/debug/brainfuck_compiler bf
+	cargo build && mv target/debug/brainfuck_compiler bfc
 release:
-	cargo build --release && mv target/release/brainfuck_compiler bf
+	cargo build --release && mv target/release/brainfuck_compiler bfc
 
 docs:
-	cargo doc && mv target/doc doc
+	cargo doc
 launch_docs: docs
-	 sensible-browser doc/brainfuck_compiler/index.html
+	 sensible-browser target/doc/brainfuck_compiler/index.html
 
 # clean up all of the compiled files
 clean:
-	rm -rf docs && rm -f bf && cargo clean
+	rm -rf docs && rm -f bfc && cargo clean
 
-.PHONY: all laucnh_docs clean
+.PHONY: all launch_docs clean
