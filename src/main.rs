@@ -47,6 +47,8 @@
 //! | 3         | File Create Failure    |
 //! | 100       | Syntax Error           |
 
+#![feature(fn_traits)]
+#![feature(fmt_internals)]
 #![allow(dead_code)]
 
 mod arch;
@@ -60,8 +62,18 @@ use std::{
     process::exit,
 };
 
-use clap::Parser;
+use clap::{ArgEnum, Parser};
 use parser::parse;
+use arch::{compile, Backend};
+
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+enum Target {
+    Interpreter,
+    C99,
+    Arm
+}
+
 #[derive(Parser)]
 #[clap(author = "Oliver Killane", about = "BrainFuck compiler" , long_about = Some("A brainfuck compiler targeting multiple architectures"), version = "0.0.1")]
 struct Args {
@@ -77,8 +89,27 @@ struct Args {
     )]
     outputpath: Option<PathBuf>,
 
+    #[clap(
+        short,
+        long,
+        arg_enum,
+        default_value_t = Target::Interpreter,
+        help = "Set the target",
+        value_name = "TARGET"
+    )]
+    target: Target,
+
+    #[clap(short, long, default_value_t = 0, help = "The number of byte cells to the left of the initial pointer position")]
+    before_cells: u32,
+
+    #[clap(short, long, default_value_t = 30_000, help = "The number of byte cells to the right of the initial pointer position")]
+    after_cells: u32,
+
     #[clap(short, long, help = "View the unoptimised intermediate representation")]
     unoptimised: bool,
+
+    #[clap(short, long, help = "print the compilation result rather than writing to a file")]
+    print_result: bool,
 }
 
 const EXIT_SUCCESS: i32 = 0;
@@ -91,7 +122,11 @@ fn main() {
     let Args {
         mut inputpath,
         outputpath,
+        before_cells,
+        after_cells,
+        target,
         unoptimised,
+        print_result,
     } = Args::parse();
 
     match read_to_string(inputpath.clone()) {
@@ -104,22 +139,35 @@ fn main() {
 
                     // todo optimisation
 
-                    // todo generation
-
-                    let mut outputfile = if let Ok(file) = match outputpath {
-                        Some(path) => File::create(path),
-                        None => {
-                            inputpath.set_extension("s");
-                            File::create(inputpath)
-                        }
-                    } {
-                        file
+                    if target == Target::Interpreter {
+                        println!("Interpeter runs here")
                     } else {
-                        exit(FILE_CREATE_FAILURE)
-                    };
 
-                    if outputfile.write("this is the code".as_bytes()).is_err() {
-                        exit(FILE_WRITE_FAILURE);
+                        let (result, ext) = compile(match target {
+                            Target::Interpreter => panic!("Cannot set interpreter as compile backend"),
+                            Target::C99 => Backend::C99,
+                            Target::Arm => unimplemented!(),
+                        }, &ir, before_cells, after_cells);
+
+                        if print_result {
+                            println!("Compiler Result:\n{}", result)
+                        } else {
+                            let mut outputfile = if let Ok(file) = match outputpath {
+                                Some(path) => File::create(path),
+                                None => {
+                                    inputpath.set_extension(ext);
+                                    File::create(inputpath)
+                                }
+                            } {
+                                file
+                            } else {
+                                exit(FILE_CREATE_FAILURE)
+                            };
+                            
+                            if write!(outputfile, "{}", result).is_err() {
+                                exit(FILE_WRITE_FAILURE);
+                            }
+                        }
                     }
 
                     exit(EXIT_SUCCESS)

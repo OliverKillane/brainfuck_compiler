@@ -3,6 +3,8 @@
 # ignore the brainfuck
 bfc
 
-# Brainfuck and assembly files ignored
+# Brainfuck and produced files ignored
 *.bf
 *.s
+*.c
+*.out
