@@ -8,7 +8,7 @@ pub enum Backend {
     C99,
 }
 
-pub fn compile(backend: Backend, bf: &BrainFuck,  pre: u32, post: u32) -> (String, &'static str) {
+pub fn compile(backend: Backend, bf: &BrainFuck, pre: u32, post: u32) -> (String, &'static str) {
     let (compile_fn, ext) = match backend {
         Backend::C99 => (c99::compile, "c"),
     };

@@ -18,21 +18,35 @@
 //! ```text
 //! brainfuck_compiler 0.0.1
 //! Oliver Killane
-//! A brainfuck compiler targeting multiple architectures
+//! BrainFuck compiler
 //!
 //! USAGE:
-//!     bf [OPTIONS] <FILE>
+//!     bfc [OPTIONS] <FILE>
 //!
 //! ARGS:
-//!     <FILE>
-//!
+//!     <FILE>    
 //!
 //! OPTIONS:
+//!     -a, --after-cells <AFTER_CELLS>
+//!             The number of byte cells to the right of the initial pointer position [default: 30000]
+//!
+//!     -b, --before-cells <BEFORE_CELLS>
+//!             The number of byte cells to the left of the initial pointer position [default: 0]
+//!
 //!     -h, --help
 //!             Print help information
 //!
 //!     -o, --outputpath <FILE>
 //!             The name of the output file
+//!
+//!     -p, --print-result
+//!             print the compilation result rather than writing to a file
+//!
+//!     -t, --target <TARGET>
+//!             Set the target [default: interpreter] [possible values: interpreter, c99, arm]
+//!
+//!     -u, --unoptimised
+//!             View the unoptimised intermediate representation
 //!
 //!     -V, --version
 //!             Print version information
@@ -62,16 +76,15 @@ use std::{
     process::exit,
 };
 
+use arch::{compile, Backend};
 use clap::{ArgEnum, Parser};
 use parser::parse;
-use arch::{compile, Backend};
-
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
 enum Target {
     Interpreter,
     C99,
-    Arm
+    Arm,
 }
 
 #[derive(Parser)]
@@ -99,16 +112,30 @@ struct Args {
     )]
     target: Target,
 
-    #[clap(short, long, default_value_t = 0, help = "The number of byte cells to the left of the initial pointer position")]
+    #[clap(
+        short,
+        long,
+        default_value_t = 0,
+        help = "The number of byte cells to the left of the initial pointer position"
+    )]
     before_cells: u32,
 
-    #[clap(short, long, default_value_t = 30_000, help = "The number of byte cells to the right of the initial pointer position")]
+    #[clap(
+        short,
+        long,
+        default_value_t = 30_000,
+        help = "The number of byte cells to the right of the initial pointer position"
+    )]
     after_cells: u32,
 
     #[clap(short, long, help = "View the unoptimised intermediate representation")]
     unoptimised: bool,
 
-    #[clap(short, long, help = "print the compilation result rather than writing to a file")]
+    #[clap(
+        short,
+        long,
+        help = "print the compilation result rather than writing to a file"
+    )]
     print_result: bool,
 }
 
@@ -142,12 +169,18 @@ fn main() {
                     if target == Target::Interpreter {
                         println!("Interpeter runs here")
                     } else {
-
-                        let (result, ext) = compile(match target {
-                            Target::Interpreter => panic!("Cannot set interpreter as compile backend"),
-                            Target::C99 => Backend::C99,
-                            Target::Arm => unimplemented!(),
-                        }, &ir, before_cells, after_cells);
+                        let (result, ext) = compile(
+                            match target {
+                                Target::Interpreter => {
+                                    panic!("Cannot set interpreter as compile backend")
+                                }
+                                Target::C99 => Backend::C99,
+                                Target::Arm => unimplemented!(),
+                            },
+                            &ir,
+                            before_cells,
+                            after_cells,
+                        );
 
                         if print_result {
                             println!("Compiler Result:\n{}", result)
@@ -163,7 +196,7 @@ fn main() {
                             } else {
                                 exit(FILE_CREATE_FAILURE)
                             };
-                            
+
                             if write!(outputfile, "{}", result).is_err() {
                                 exit(FILE_WRITE_FAILURE);
                             }
