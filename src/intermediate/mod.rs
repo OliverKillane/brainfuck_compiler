@@ -1,11 +1,14 @@
 //! The first brainfuck representation. It is extended over the grammar to allow
 //! for optimisations and makes use of vectors to allow for slice pattern matches.
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct BrainFuck(pub Stats);
+
 /// The brainfuck program consists of brainfuck stats.
-pub type BrainFuck = Vec<Stat>;
+pub type Stats = Vec<Stat>;
 
 /// Basic Integer operations
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Op {
     Add,
     Mul,
@@ -14,12 +17,12 @@ pub enum Op {
 }
 
 /// Basic Statement types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Stat {
     PtrMove(i32),
     DerefOp(Op, i32),
     Output,
     Input,
-    WhileNonZero(BrainFuck),
+    WhileNonZero(Stats),
     Asm(String),
 }
