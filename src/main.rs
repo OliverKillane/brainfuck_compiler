@@ -76,6 +76,9 @@ struct Args {
         help = "The name of the output file"
     )]
     outputpath: Option<PathBuf>,
+
+    #[clap(short, long, help = "View the unoptimised intermediate representation")]
+    unoptimised: bool,
 }
 
 const EXIT_SUCCESS: i32 = 0;
@@ -88,13 +91,17 @@ fn main() {
     let Args {
         mut inputpath,
         outputpath,
+        unoptimised,
     } = Args::parse();
 
     match read_to_string(inputpath.clone()) {
         Ok(source) => {
             match parse(&source) {
                 Ok(ir) => {
-                    println!("{:?}", ir);
+                    if unoptimised {
+                        println!("Unoptimised intermediate representation:\n{}", ir)
+                    }
+
                     // todo optimisation
 
                     // todo generation

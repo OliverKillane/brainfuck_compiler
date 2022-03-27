@@ -1,6 +1,8 @@
 //! The first brainfuck representation. It is extended over the grammar to allow
 //! for optimisations and makes use of vectors to allow for slice pattern matches.
 
+pub mod display;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct BrainFuck(pub Stats);
 
