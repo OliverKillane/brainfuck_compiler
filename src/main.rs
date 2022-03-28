@@ -65,9 +65,9 @@
 #![feature(fmt_internals)]
 #![allow(dead_code)]
 
-mod arch;
 mod intermediate;
 mod parser;
+mod target;
 
 use std::{
     fs::{read_to_string, File},
@@ -76,9 +76,9 @@ use std::{
     process::exit,
 };
 
-use arch::{compile, Backend};
 use clap::{ArgEnum, Parser};
 use parser::parse;
+use target::{compile, Backend};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
 enum Target {
@@ -91,7 +91,7 @@ enum Target {
 #[clap(author = "Oliver Killane", about = "BrainFuck compiler" , long_about = Some("A brainfuck compiler targeting multiple architectures"), version = "0.0.1")]
 struct Args {
     #[clap(parse(from_os_str), value_name = "FILE")]
-    inputpath: PathBuf,
+    input_path: PathBuf,
 
     #[clap(
         short,
@@ -100,7 +100,7 @@ struct Args {
         value_name = "FILE",
         help = "The name of the output file"
     )]
-    outputpath: Option<PathBuf>,
+    output_path: Option<PathBuf>,
 
     #[clap(
         short,
@@ -147,8 +147,8 @@ const SYNTAX_ERROR: i32 = 100;
 
 fn main() {
     let Args {
-        mut inputpath,
-        outputpath,
+        mut input_path,
+        output_path,
         before_cells,
         after_cells,
         target,
@@ -156,7 +156,7 @@ fn main() {
         print_result,
     } = Args::parse();
 
-    match read_to_string(inputpath.clone()) {
+    match read_to_string(input_path.clone()) {
         Ok(source) => {
             match parse(&source) {
                 Ok(ir) => {
@@ -167,7 +167,7 @@ fn main() {
                     // todo optimisation
 
                     if target == Target::Interpreter {
-                        println!("Interpeter runs here")
+                        println!("Interpreter runs here")
                     } else {
                         let (result, ext) = compile(
                             match target {
@@ -185,11 +185,11 @@ fn main() {
                         if print_result {
                             println!("Compiler Result:\n{}", result)
                         } else {
-                            let mut outputfile = if let Ok(file) = match outputpath {
+                            let mut output_file = if let Ok(file) = match output_path {
                                 Some(path) => File::create(path),
                                 None => {
-                                    inputpath.set_extension(ext);
-                                    File::create(inputpath)
+                                    input_path.set_extension(ext);
+                                    File::create(input_path)
                                 }
                             } {
                                 file
@@ -197,7 +197,7 @@ fn main() {
                                 exit(FILE_CREATE_FAILURE)
                             };
 
-                            if write!(outputfile, "{}", result).is_err() {
+                            if write!(output_file, "{}", result).is_err() {
                                 exit(FILE_WRITE_FAILURE);
                             }
                         }
