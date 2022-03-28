@@ -11,7 +11,7 @@
 //! <While>    ::= '[' <Stat>* ']'
 //! <ASM>      ::= '::' .* '::'
 //! <Comment>  ::= '#' .* '#'
-//! <Stat>     ::= <PtrLeft> | <PtrRight> | <Inc> | <Dec> | <Input> | <Output> | <While> | <ASM(s)>
+//! <Stat>     ::= <PtrLeft> | <PtrRight> | <Inc> | <Dec> | <Input> | <Output> | <While> | <ASM>
 //! ```
 //!
 //! ## Conversion:
@@ -57,12 +57,14 @@ pub fn parse(input: &str) -> Result<BrainFuck, &str> {
 /// Parse an assembly insert, placing the text inside into an assembly insert
 /// statement.
 fn get_insert(input: &str) -> IResult<&str, Stat> {
-    take_until("::")(input).map(|(rem, asm)| (rem, Stat::Asm(asm.to_string())))
+    delimited(tag("::"), take_until("::"), tag("::"))(input)
+        .map(|(rem, asm)| (rem, Stat::Asm(asm.to_string())))
 }
 
 /// Get the inner instructions of a basic while loop
 fn get_while(input: &str) -> IResult<&str, Stat> {
-    parse_stats(input).map(|(rem, res)| (rem, Stat::WhileNonZero(res)))
+    delimited(tag("["), parse_stats, tag("]"))(input)
+        .map(|(rem, res)| (rem, Stat::WhileNonZero(res)))
 }
 
 /// Consume whitespace and comments.
@@ -84,8 +86,8 @@ fn parse_stats(input: &str) -> IResult<&str, Stats> {
             value(Stat::DerefOp(Op::Add, -1), tag("-")),
             value(Stat::Input, tag(",")),
             value(Stat::Output, tag(".")),
-            delimited(tag("::"), get_insert, tag("::")),
-            delimited(tag("["), get_while, tag("]")),
+            get_insert,
+            get_while,
         )),
         get_whitespace,
     ))(input)

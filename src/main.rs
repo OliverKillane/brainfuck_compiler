@@ -65,9 +65,9 @@
 #![feature(fmt_internals)]
 #![allow(dead_code)]
 
-mod arch;
 mod intermediate;
 mod parser;
+mod target;
 
 use std::{
     fs::{read_to_string, File},
@@ -76,9 +76,9 @@ use std::{
     process::exit,
 };
 
-use arch::{compile, Backend};
 use clap::{ArgEnum, Parser};
 use parser::parse;
+use target::{compile, Backend};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
 enum Target {
