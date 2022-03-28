@@ -38,12 +38,12 @@ fn transpile_stat(stat: &Stat, indent_lvl: usize, f: &mut Formatter<'_>) -> std:
     let indent = "\t".repeat(indent_lvl);
     write!(f, "{}", indent)?;
     match stat {
-        Stat::PtrMove(i @ MIN..=-1) => writeln!(f, "ptr -= {};", i),
+        Stat::PtrMove(i @ MIN..=-1) => writeln!(f, "ptr -= {};", i * -1),
         Stat::PtrMove(i @ 1..=MAX) => writeln!(f, "ptr += {};", i),
         Stat::PtrMove(0) => writeln!(f, "/* redundant ptr move*/"),
         Stat::DerefOp(op, i) => writeln!(
             f,
-            "ptr {}= {};",
+            "*ptr {}= {};",
             match op {
                 Op::Add => "+",
                 Op::Mul => "*",
